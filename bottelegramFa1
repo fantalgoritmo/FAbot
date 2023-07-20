@@ -1,0 +1,78 @@
+import requests
+from bs4 import BeautifulSoup
+from telegram import Update, ParseMode
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
+
+# Funzione per ottenere i nuovi acquisti delle squadre di Serie A
+def get_new_signings():
+    url = 'https://www.transfermarkt.it/serie-a/geruechte/wettbewerb/IT1'  # Sostituisci con il sito web corretto
+    response = requests.get(url)
+    soup = BeautifulSoup(response.content, 'html.parser')
+    signings = soup.find_all('div', class_='new-signing')  # Sostituisci con la classe corretta del div contenente le notizie
+    return [signing.text.strip() for signing in signings]
+
+# Funzione per ottenere i giocatori infortunati di Serie A
+def get_injured_players():
+    url = 'https://www.transfermarkt.it/serie-a/verletztespieler/wettbewerb/IT1'  # Sostituisci con il sito web corretto
+    response = requests.get(url)
+    soup = BeautifulSoup(response.content, 'html.parser')
+    injured_players = soup.find_all('div', class_='injured-player')  # Sostituisci con la classe corretta del div contenente le notizie
+    return [player.text.strip() for player in injured_players]
+
+# Funzione per ottenere i bonus al fantacalcio dei giocatori di Serie A
+def get_fantasy_bonus():
+    url = 'https://www.example.com/bonus_fantacalcio_serie_a'  # Sostituisci con il sito web corretto
+    response = requests.get(url)
+    soup = BeautifulSoup(response.content, 'html.parser')
+    fantasy_bonus = soup.find_all('div', class_='fantasy-bonus')  # Sostituisci con la classe corretta del div contenente le notizie
+    return [bonus.text.strip() for bonus in fantasy_bonus]
+
+# Funzione per inviare un messaggio di testo al bot
+def send_text_message(update: Update, context: CallbackContext, text: str):
+    update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
+
+# Comando /nuovi_acquisti
+def nuovi_acquisti(update: Update, context: CallbackContext):
+    signings = get_new_signings()
+    if signings:
+        message = "\n".join(signings)
+    else:
+        message = "Nessun nuovo acquisto segnalato al momento."
+    send_text_message(update, context, message)
+
+# Comando /giocatori_infortunati
+def giocatori_infortunati(update: Update, context: CallbackContext):
+    injured_players = get_injured_players()
+    if injured_players:
+        message = "\n".join(injured_players)
+    else:
+        message = "Nessun giocatore infortunato segnalato al momento."
+    send_text_message(update, context, message)
+
+# Comando /bonus_fantacalcio
+def bonus_fantacalcio(update: Update, context: CallbackContext):
+    fantasy_bonus = get_fantasy_bonus()
+    if fantasy_bonus:
+        message = "\n".join(fantasy_bonus)
+    else:
+        message = "Nessun bonus fantacalcio segnalato al momento."
+    send_text_message(update, context, message)
+
+# Funzione principale per avviare il bot
+def main():
+    # Inserisci il tuo token del bot Telegram qui
+    bot_token = "IL_TUO_TOKEN_DEL_BOT_TELEGRAM"
+    updater = Updater(token=bot_token, use_context=True)
+    dispatcher = updater.dispatcher
+
+    # Comandi supportati dal bot
+    dispatcher.add_handler(CommandHandler("nuovi_acquisti", nuovi_acquisti))
+    dispatcher.add_handler(CommandHandler("giocatori_infortunati", giocatori_infortunati))
+    dispatcher.add_handler(CommandHandler("bonus_fantacalcio", bonus_fantacalcio))
+
+    # Start del bot
+    updater.start_polling()
+    updater.idle()
+
+if __name__ == '__main__':
+    main(6389875862:AAGe94A5S2B4GK-_ZV57AfBD3qXbNu4nQec)
